@@ -19,12 +19,19 @@
 - (void)didUpdateRegionEnterOrExit:(ABFBeaconRegion *)region;
 @end
 
-@interface ABFBeacon : NSObject <CBPeripheralManagerDelegate, CLLocationManagerDelegate>
-@property (nonatomic, weak) id<ABFBeaconDelegate> delegate;
+#define ABFBeaconDefaultRegionMaxCount            20
+#define ABFBeaconDefaultMaxFailCount               3
 
+@interface ABFBeacon : NSObject <CBPeripheralManagerDelegate, CLLocationManagerDelegate>
+@property (nonatomic, strong) NSMutableArray *regions;
+@property (nonatomic) BOOL monitoringEnabled;
+
+@property (nonatomic, weak) id<ABFBeaconDelegate> delegate;
 @property (nonatomic) BOOL notifyZeroRSSIRegion;
 @property (nonatomic) BOOL notifyUnder20RSSIRegion;
 @property (nonatomic) BOOL loggingEnabled;
+@property (nonatomic) int regionMaxCount;
+@property (nonatomic) int maxFailCount;
 
 + (ABFBeacon *)sharedManager;
 
@@ -32,4 +39,6 @@
 - (void)stopMonitoring;
 - (void)startRegionWithUUIDList:(NSArray *)UUIDList rangingEnabled:(BOOL)rangingEnabled;
 - (void)stopRegionWithClearingUUIDList;
+- (void)requestUpdateForStatus;
+- (BOOL)isMonitoringCapable;
 @end

@@ -8,8 +8,6 @@
 
 #import <CoreLocation/CoreLocation.h>
 
-#define ABFBeaconMaxFailCount        3
-
 @interface ABFBeaconRegion : CLBeaconRegion
 @property (nonatomic) BOOL isMonitoring;
 @property (nonatomic) BOOL isRanging;

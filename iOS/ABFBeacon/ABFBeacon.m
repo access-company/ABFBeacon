@@ -11,9 +11,6 @@
 @interface ABFBeacon ()
 @property (nonatomic, strong) CBPeripheralManager *peripheralManager;
 @property (nonatomic, strong) CLLocationManager *locationManager;
-
-@property (nonatomic, strong) NSMutableArray *regions;
-@property (nonatomic) BOOL monitoringEnabled;
 @end
 
 @implementation ABFBeacon
@@ -55,9 +52,14 @@
         // Disable logggin.
         _loggingEnabled = NO;
         
-        //_monitoringStatus = kESBeaconMonitoringStatusDisabled;
-        //_monitoringEnabled = NO;
-        //_isMonitoring = NO;
+        // Set maximum number of monitoring region.
+        _regionMaxCount = ABFBeaconDefaultRegionMaxCount;
+
+        // Max region fail count set to default value.
+        _maxFailCount = ABFBeaconDefaultMaxFailCount;
+        
+        // Monitoring status.
+        _monitoringEnabled = NO;
 
         [[NSNotificationCenter defaultCenter] addObserver:self
                                                  selector:@selector(applicationDidBecomeActive)
@@ -77,10 +79,10 @@
 
 - (void)applicationDidBecomeActive
 {
-    [NSTimer scheduledTimerWithTimeInterval:1.0f target:self selector:@selector(updateRegionState:) userInfo:nil repeats:NO];
+    [NSTimer scheduledTimerWithTimeInterval:1.0f target:self selector:@selector(updateRegionStateTimer:) userInfo:nil repeats:NO];
 }
 
-- (void)updateRegionState:(NSTimer *)timer
+- (void)updateRegionStateTimer:(NSTimer *)timer
 {
     for (ABFBeaconRegion *region in self.regions) {
         if (region.isMonitoring) {
@@ -125,20 +127,42 @@
 
 - (void)enableMonitoring
 {
-    if (! self.monitoringEnabled) {
+    if (!self.monitoringEnabled) {
         return;
     }
 
-    if (! [self isMonitoringCapable]) {
+    if (![self isMonitoringCapable]) {
         return;
     }
 
     for (ABFBeaconRegion *region in self.regions) {
         if (!region.isMonitoring) {
-            [_locationManager startMonitoringForRegion:region];
-            region.isMonitoring = YES;
+            [self enableMonitoringForRegion:region];
         }
     }
+}
+
+- (void)enableMonitoringForRegion:(ABFBeaconRegion *)region
+{
+    if (!self.monitoringEnabled) {
+        return;
+    }
+    
+    if (![self isMonitoringCapable]) {
+        return;
+    }
+    
+    if (region.isMonitoring) {
+        return;
+    }
+    
+    [_locationManager startMonitoringForRegion:region];
+    region.isMonitoring = YES;
+}
+
+- (void)enableMonitoringForRegionTimer:(NSTimer *)timer
+{
+    [self enableMonitoringForRegion:(ABFBeaconRegion *)timer.userInfo];
 }
 
 - (void)disableMonitoring
@@ -165,7 +189,7 @@
 {
     if (! region.isRanging) {
         if(_loggingEnabled) {
-            NSLog(@"startRanging");
+            NSLog(@"ABF startRanging:%@", region.identifier);
         }
         [_locationManager startRangingBeaconsInRegion:region];
         region.isRanging = YES;
@@ -176,11 +200,35 @@
 {
     if (region.isRanging) {
         if (_loggingEnabled) {
-            NSLog(@"stopRanging");
+            NSLog(@"ABF stopRanging:%@", region.identifier);
         }
         [_locationManager stopRangingBeaconsInRegion:region];
         region.beacons = nil;
         region.isRanging = NO;
+    }
+}
+
+- (void)requestUpdateForStatus
+{
+    if ([_delegate respondsToSelector:@selector(didUpdatePeripheralState:)]) {
+        [_delegate didUpdatePeripheralState:self.peripheralManager.state];
+    }
+    if ([_delegate respondsToSelector:@selector(didUpdateAuthorizationStatus:)]) {
+        [_delegate didUpdateAuthorizationStatus:[CLLocationManager authorizationStatus]];
+    }
+}
+
+#pragma mark - ABFBeacon Region management
+
+- (void)regionAdd:(ABFBeaconRegion *)region
+{
+    if (_loggingEnabled) {
+        NSLog(@"ABF Region Regstered: %@", region);
+    }
+    if (region) {
+        [region initStatus];
+        [self.regions addObject:region];
+        [self enableMonitoringForRegion:region];
     }
 }
 
@@ -197,24 +245,9 @@
     return nil;
 }
 
-#pragma mark - ABFBeacon Region management
-
-#define ABFBeaconRegionMax 20
-
-- (void)regionAdd:(ABFBeaconRegion *)region
-{
-    if (_loggingEnabled) {
-        NSLog(@"Region Regstered: %@", region);
-    }
-    if (region) {
-        [region initStatus];
-        [self.regions addObject:region];
-    }
-}
-
 - (ABFBeaconRegion *)registerRegion:(NSString *)UUIDString identifier:(NSString *)identifier
 {
-    if ([self.regions count] >= ABFBeaconRegionMax) {
+    if ([self.regions count] >= _regionMaxCount) {
         return nil;
     }
     ABFBeaconRegion *region = [[ABFBeaconRegion alloc] initWithProximityUUID:[[NSUUID alloc] initWithUUIDString:UUIDString] identifier:identifier];
@@ -224,7 +257,7 @@
 
 - (ABFBeaconRegion *)registerRegion:(NSString *)UUIDString major:(CLBeaconMajorValue)major identifier:(NSString *)identifier
 {
-    if ([self.regions count] >= ABFBeaconRegionMax) {
+    if ([self.regions count] >= _regionMaxCount) {
         return nil;
     }
     ABFBeaconRegion *region = [[ABFBeaconRegion alloc] initWithProximityUUID:[[NSUUID alloc] initWithUUIDString:UUIDString] major:major identifier:identifier];
@@ -234,7 +267,7 @@
 
 - (ABFBeaconRegion *)registerRegion:(NSString *)UUIDString major:(CLBeaconMajorValue)major minor:(CLBeaconMinorValue)minor identifier:(NSString *)identifier
 {
-    if ([self.regions count] >= ABFBeaconRegionMax) {
+    if ([self.regions count] >= _regionMaxCount) {
         return nil;
     }
     ABFBeaconRegion *region = [[ABFBeaconRegion alloc] initWithProximityUUID:[[NSUUID alloc] initWithUUIDString:UUIDString] major:major minor:minor identifier:identifier];
@@ -264,6 +297,54 @@
     [self.regions removeAllObjects];
 }
 
+- (void)enterRegion:(CLBeaconRegion *)region
+{
+    if (_loggingEnabled) {
+        NSLog(@"ABF enterRegion:%@", region.identifier);
+    }
+    
+    // Lookup BeaconRegion.
+    ABFBeaconRegion *beaconRegion = [self lookupRegion:region];
+    if (! beaconRegion)
+        return;
+    
+    // Already in the region.
+    if (beaconRegion.hasEntered)
+        return;
+    
+    // When ranging is enabled, start ranging.
+    if (beaconRegion.rangingEnabled)
+        [self startRanging:beaconRegion];
+    
+    // Mark as entered.
+    beaconRegion.hasEntered = YES;
+    if ([_delegate respondsToSelector:@selector(didUpdateRegionEnterOrExit:)]) {
+        [_delegate didUpdateRegionEnterOrExit:beaconRegion];
+    }
+}
+
+- (void)exitRegion:(CLBeaconRegion *)region
+{
+    if (_loggingEnabled) {
+        NSLog(@"ABF exitRegion:%@", region.identifier);
+    }
+    
+    ABFBeaconRegion *beaconRegion = [self lookupRegion:region];
+    if (! beaconRegion)
+        return;
+    
+    if (! beaconRegion.hasEntered)
+        return;
+    
+    if (beaconRegion.rangingEnabled)
+        [self stopRanging:beaconRegion];
+    
+    beaconRegion.hasEntered = NO;
+    if ([_delegate respondsToSelector:@selector(didUpdateRegionEnterOrExit:)]) {
+        [_delegate didUpdateRegionEnterOrExit:beaconRegion];
+    }
+}
+
 #pragma mark - CBPeripheralManagerDelegate
 
 - (NSString *)peripheralStateString:(CBPeripheralManagerState)state
@@ -287,7 +368,7 @@
 - (void)peripheralManagerDidUpdateState:(CBPeripheralManager *)peripheral
 {
     if (_loggingEnabled) {
-        NSLog(@"peripheralManagerDidUpdateState: %@", [self peripheralStateString:peripheral.state]);
+        NSLog(@"ABF peripheralManagerDidUpdateState: %@", [self peripheralStateString:peripheral.state]);
     }
 
     [self updateMonitoring];
@@ -297,7 +378,7 @@
     }
 }
 
-#pragma mark CLLocationManagerDelegate (Responding to Authorization Changes)
+#pragma mark CLLocationManagerDelegate - Authorization
 - (NSString *)locationAuthorizationStatusString:(CLAuthorizationStatus)status
 {
     switch (status) {
@@ -316,7 +397,7 @@
 - (void)locationManager:(CLLocationManager *)manager didChangeAuthorizationStatus:(CLAuthorizationStatus)status
 {
     if (_loggingEnabled) {
-        NSLog(@"didChangeAuthorizationStatus:%@", [self locationAuthorizationStatusString:status]);
+        NSLog(@"ABF didChangeAuthorizationStatus:%@", [self locationAuthorizationStatusString:status]);
     }
     
     [self updateMonitoring];
@@ -331,7 +412,7 @@
 - (void)locationManager:(CLLocationManager *)manager didStartMonitoringForRegion:(CLRegion *)region
 {
     if (_loggingEnabled) {
-        NSLog(@"didStartMonitoringForRegion:%@", region.identifier);
+        NSLog(@"ABF didStartMonitoringForRegion:%@", region.identifier);
     }
     
     if ([region isKindOfClass:[CLBeaconRegion class]]) {
@@ -341,6 +422,112 @@
         }
     }
     [self.locationManager requestStateForRegion:region];
+}
+
+- (void)locationManager:(CLLocationManager *)manager didEnterRegion:(CLRegion *)region
+{
+    if ([region isKindOfClass:[CLBeaconRegion class]]) {
+        [self enterRegion:(CLBeaconRegion *)region];
+    }
+}
+
+- (void)locationManager:(CLLocationManager *)manager didExitRegion:(CLRegion *)region
+{
+    if ([region isKindOfClass:[CLBeaconRegion class]]) {
+        [self exitRegion:(CLBeaconRegion *)region];
+    }
+}
+
+- (NSString *)regionStateString:(CLRegionState)state
+{
+    switch (state) {
+        case CLRegionStateInside:
+            return @"inside";
+        case CLRegionStateOutside:
+            return @"outside";
+        case CLRegionStateUnknown:
+            return @"unknown";
+    }
+    return @"";
+}
+
+- (void)locationManager:(CLLocationManager *)manager didDetermineState:(CLRegionState)state forRegion:(CLRegion *)region
+{
+    if (_loggingEnabled) {
+        NSLog(@"ABF didDetermineState:%@(%@)", [self regionStateString:state], region.identifier);
+    }
+    
+    if ([region isKindOfClass:[CLBeaconRegion class]]) {
+        switch (state) {
+            case CLRegionStateInside:
+                [self enterRegion:(CLBeaconRegion *)region];
+                break;
+            case CLRegionStateOutside:
+            case CLRegionStateUnknown:
+                [self exitRegion:(CLBeaconRegion *)region];
+                break;
+            default:
+                break;
+        }
+    }
+}
+
+- (void)locationManager:(CLLocationManager *)manager monitoringDidFailForRegion:(CLRegion *)region withError:(NSError *)error
+{
+    if (_loggingEnabled) {
+        NSLog(@"ABF monitoringDidFailForRegion:%@(%@)", region.identifier, error);
+    }
+    
+    if ([region isKindOfClass:[CLBeaconRegion class]]) {
+        ABFBeaconRegion *beaconRegion = [self lookupRegion:(CLBeaconRegion *)region];
+        if (! beaconRegion)
+            return;
+        
+        [self disableMonitoringForRegion:beaconRegion];
+        
+        if (beaconRegion.failCount < _maxFailCount) {
+            beaconRegion.failCount++;
+            [NSTimer scheduledTimerWithTimeInterval:1.f
+                                             target:self
+                                           selector:@selector(enableMonitoringForRegionTimer:)
+                                           userInfo:beaconRegion
+                                            repeats:NO];
+        }
+    }
+}
+
+#pragma mark - CLLocationManagerDelegate - Ranging
+
+- (void)locationManager:(CLLocationManager *)manager didRangeBeacons:(NSArray *)beacons inRegion:(CLBeaconRegion *)region
+{
+    if (_loggingEnabled) {
+        NSLog(@"ABF didRangeBeacons:%@", region.identifier);
+    }
+    
+    ABFBeaconRegion *beaconRegion = [self lookupRegion:region];
+    if (!beaconRegion) {
+        return;
+    }
+    
+    beaconRegion.beacons = beacons;
+    
+    if ([_delegate respondsToSelector:@selector(didRangeBeacons:)]) {
+        [_delegate didRangeBeacons:beaconRegion];
+    }
+}
+
+- (void)locationManager:(CLLocationManager *)manager rangingBeaconsDidFailForRegion:(CLBeaconRegion *)region withError:(NSError *)error
+{
+    if (_loggingEnabled) {
+        NSLog(@"ABF rangingBeaconsDidFailForRegion:%@(%@)", region.identifier, error);
+    }
+    
+    ABFBeaconRegion *beaconRegion = [self lookupRegion:region];
+    if (!beaconRegion) {
+        return;
+    }
+    
+    [self stopRanging:beaconRegion];
 }
 
 @end
