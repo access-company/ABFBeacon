@@ -107,13 +107,18 @@
 
 - (BOOL)isMonitoringCapable
 {
-    if ([CLLocationManager isMonitoringAvailableForClass:[CLBeaconRegion class]] &&
-        [CLLocationManager authorizationStatus] == kCLAuthorizationStatusAuthorized &&
-        _peripheralManager.state == CBPeripheralManagerStatePoweredOn) {
-        return YES;
-    } else {
+    if (![CLLocationManager isMonitoringAvailableForClass:[CLBeaconRegion class]]) {
         return NO;
     }
+    if (_peripheralManager.state != CBPeripheralManagerStatePoweredOn) {
+        return NO;
+    }
+    
+    if ([CLLocationManager authorizationStatus] == kCLAuthorizationStatusDenied ||
+        [CLLocationManager authorizationStatus] == kCLAuthorizationStatusRestricted) {
+        return NO;
+    }
+    return YES;
 }
 
 - (void)updateMonitoring
@@ -223,7 +228,7 @@
 - (void)regionAdd:(ABFBeaconRegion *)region
 {
     if (_loggingEnabled) {
-        NSLog(@"ABF Region Regstered: %@", region);
+        NSLog(@"ABF Region Registered: %@", region);
     }
     if (region) {
         [region initStatus];
