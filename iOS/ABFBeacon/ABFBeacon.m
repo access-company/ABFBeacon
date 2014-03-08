@@ -29,7 +29,7 @@
     return sharedSingleton;
 }
 
-- (id)initSharedInstance
+- (instancetype)initSharedInstance
 {
     self = [super init];
     if (self) {
@@ -69,7 +69,7 @@
     return self;
 }
 
-- (id)init
+- (instancetype)init
 {
     [self doesNotRecognizeSelector:_cmd];
     return nil;
