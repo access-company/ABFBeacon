@@ -28,7 +28,7 @@ ABFBeacon *beacon = [ABFBeacon sharedManager];
 will instanciate ABFBeacon singleton.
 
 ```
-[beacon registerRegion:@"E02CC25E-0049-4185-832C-3A65DB755D01" identidier:@"ACCESS"];
+[beacon registerRegion:@"E02CC25E-0049-4185-832C-3A65DB755D01" identifier:@"ACCESS"];
 [beacon startMonitoring];
 ```
 
