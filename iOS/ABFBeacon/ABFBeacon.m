@@ -61,10 +61,12 @@
         // Monitoring status.
         _monitoringEnabled = NO;
 
+        /* This may cause a issue of kCLErrorDomain error 5, commenting out for now.
         [[NSNotificationCenter defaultCenter] addObserver:self
                                                  selector:@selector(applicationDidBecomeActive)
                                                      name:UIApplicationDidBecomeActiveNotification
                                                    object:nil];
+        */
     }
     return self;
 }
