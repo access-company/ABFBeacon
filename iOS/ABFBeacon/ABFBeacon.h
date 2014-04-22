@@ -32,6 +32,8 @@
 @property (nonatomic) BOOL loggingEnabled;
 @property (nonatomic) int regionMaxCount;
 @property (nonatomic) int maxFailCount;
+// Error 5 flag
+@property (nonatomic) int isError5;
 
 + (ABFBeacon *)sharedManager;
 

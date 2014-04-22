@@ -501,6 +501,10 @@
                                             repeats:NO];
         }
     }
+    
+    if (error.code == kCLErrorRegionMonitoringFailure) {
+        self.isError5 = YES;
+    }
 }
 
 #pragma mark - CLLocationManagerDelegate - Ranging
