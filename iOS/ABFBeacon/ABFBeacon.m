@@ -242,12 +242,34 @@
 - (ABFBeaconRegion *)lookupRegion:(CLBeaconRegion *)region
 {
     for (ABFBeaconRegion *beaconRegion in _regions) {
-        if ([beaconRegion.proximityUUID.UUIDString isEqualToString:region.proximityUUID.UUIDString] &&
-            [beaconRegion.identifier isEqualToString:region.identifier] &&
-            beaconRegion.major == region.major &&
-            beaconRegion.minor == region.minor) {
-            return beaconRegion;
+        if (![beaconRegion.proximityUUID.UUIDString isEqualToString:region.proximityUUID.UUIDString]) {
+            return nil;
         }
+        if (![beaconRegion.identifier isEqualToString:region.identifier]) {
+            return nil;
+        }
+        if (!beaconRegion.major) {
+            if (beaconRegion.major != region.major) {
+                return nil;
+            }
+        }
+        else {
+            if (![beaconRegion.major isEqualToNumber:region.major]) {
+                return nil;
+            }
+        }
+        if (!beaconRegion.minor) {
+            if (beaconRegion.minor != region.minor) {
+                return nil;
+            }
+        }
+        else {
+            if (![beaconRegion.minor isEqualToNumber:region.minor]) {
+                return nil;
+            }
+        }
+        
+        return beaconRegion;
     }
     return nil;
 }
