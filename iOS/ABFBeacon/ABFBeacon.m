@@ -243,29 +243,29 @@
 {
     for (ABFBeaconRegion *beaconRegion in _regions) {
         if (![beaconRegion.proximityUUID.UUIDString isEqualToString:region.proximityUUID.UUIDString]) {
-            return nil;
+            continue;
         }
         if (![beaconRegion.identifier isEqualToString:region.identifier]) {
-            return nil;
+            continue;
         }
         if (!beaconRegion.major) {
             if (beaconRegion.major != region.major) {
-                return nil;
+                continue;
             }
         }
         else {
             if (![beaconRegion.major isEqualToNumber:region.major]) {
-                return nil;
+                continue;
             }
         }
         if (!beaconRegion.minor) {
             if (beaconRegion.minor != region.minor) {
-                return nil;
+                continue;
             }
         }
         else {
             if (![beaconRegion.minor isEqualToNumber:region.minor]) {
-                return nil;
+                continue;
             }
         }
         
