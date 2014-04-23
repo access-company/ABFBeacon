@@ -7,8 +7,8 @@
 //
 
 #import <Foundation/Foundation.h>
-@import CoreLocation;
-@import CoreBluetooth;
+#import <CoreLocation/CoreLocation.h>
+#import <CoreBluetooth/CoreBluetooth.h>
 #import "ABFBeaconRegion.h"
 
 @protocol ABFBeaconDelegate <NSObject>
