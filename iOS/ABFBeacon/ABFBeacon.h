@@ -22,12 +22,20 @@
 #define ABFBeaconDefaultRegionMaxCount            20
 #define ABFBeaconDefaultMaxFailCount               3
 
+#define ABFBeaconTagUserDenied                    1
+#define ABFBeaconTagError5                        2
+
 #define ABFBeaconNoDisplayUserDenied              @"ABF_BEACON_NO_DISPLAY_USER_DENIED"
+#define ABFBeaconNoDisplayError5                  @"ABF_BEACON_NO_DISPLAY_ERROR_5"
 
 // Messages
 #define ABFBeaconAlertUserDeniedMessage           @"iBeaconキャンペーンをお試し頂くには、「設定 → プライバシー → 位置情報サービス」から本アプリの位置情報サービスを有効にしてください。"
 #define ABFBeaconAlertUserDeniedMessage_Confirm   @"確認"
 #define ABFBeaconAlertUserDeniedMessage_NoDisplay @"次から見ない"
+#define ABFBeaconAlertError5Message               @"iBeacon検知用の位置情報登録に失敗しました。\nデバイスを再起動して再度お試しください。"
+#define ABFBeaconAlertError5Message_Confirm       @"確認"
+#define ABFBeaconAlertError5Message_NoDisplay     @"次から見ない"
+
 
 @interface ABFBeacon : NSObject <CBPeripheralManagerDelegate, CLLocationManagerDelegate>
 @property (nonatomic, strong) NSMutableArray *regions;
@@ -42,9 +50,10 @@
 // Error 5 flag
 @property (nonatomic) int isError5;
 
-// Alert User Denied
+// Alert User Denied and Error5
 @property (nonatomic) UIAlertView *alertView;
 @property (nonatomic) BOOL DisplayedAlertUserDenied;
+@property (nonatomic) BOOL DisplayedAlertError5;
 
 + (ABFBeacon *)sharedManager;
 

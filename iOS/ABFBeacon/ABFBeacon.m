@@ -241,8 +241,26 @@
     }
     
     _alertView = [[UIAlertView alloc] initWithTitle:nil message:ABFBeaconAlertUserDeniedMessage delegate:self cancelButtonTitle:ABFBeaconAlertUserDeniedMessage_NoDisplay otherButtonTitles:ABFBeaconAlertUserDeniedMessage_Confirm, nil];
+    _alertView.tag = ABFBeaconTagUserDenied;
     [_alertView show];
     _DisplayedAlertUserDenied = YES;
+}
+
+- (void)notifyError5
+{
+    NSUserDefaults *ud = [NSUserDefaults standardUserDefaults];
+    NSString *isNoAlert = [ud stringForKey:ABFBeaconNoDisplayError5];
+    if (isNoAlert) {
+        return;
+    }
+    if (_DisplayedAlertError5) {
+        return;
+    }
+    
+    _alertView = [[UIAlertView alloc] initWithTitle:nil message:ABFBeaconAlertUserDeniedMessage delegate:self cancelButtonTitle:ABFBeaconAlertUserDeniedMessage_NoDisplay otherButtonTitles:ABFBeaconAlertUserDeniedMessage_Confirm, nil];
+    _alertView.tag = ABFBeaconTagError5;
+    [_alertView show];
+    _DisplayedAlertError5 = YES;
 }
 
 #pragma mark - ABFBeacon Region management
@@ -527,6 +545,11 @@
         NSLog(@"ABF monitoringDidFailForRegion:%@(%@)", region.identifier, error);
     }
     
+    if (error.code == kCLErrorRegionMonitoringFailure) {
+        [self notifyError5];
+        self.isError5 = YES;
+    }
+    
     if ([region isKindOfClass:[CLBeaconRegion class]]) {
         ABFBeaconRegion *beaconRegion = [self lookupRegion:(CLBeaconRegion *)region];
         if (! beaconRegion)
@@ -542,10 +565,6 @@
                                            userInfo:beaconRegion
                                             repeats:NO];
         }
-    }
-    
-    if (error.code == kCLErrorRegionMonitoringFailure) {
-        self.isError5 = YES;
     }
 }
 
@@ -587,9 +606,21 @@
 
 - (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex
 {
-    if (buttonIndex == 0) {
-        NSUserDefaults *ud = [NSUserDefaults standardUserDefaults];
-        [ud setObject:@"No Display User Dinied Messesage" forKey:ABFBeaconNoDisplayUserDenied];
+    switch (alertView.tag) {
+        case ABFBeaconTagUserDenied:
+            if (buttonIndex == 0) {
+                NSUserDefaults *ud = [NSUserDefaults standardUserDefaults];
+                [ud setObject:@"No Display User Dinied Messesage" forKey:ABFBeaconNoDisplayUserDenied];
+            }
+            break;
+        case ABFBeaconTagError5:
+            if (buttonIndex == 0) {
+                NSUserDefaults *ud = [NSUserDefaults standardUserDefaults];
+                [ud setObject:@"No Display Error 5 Messesage" forKey:ABFBeaconNoDisplayError5];
+            }
+            break;
+        default:
+            break;
     }
 }
 
