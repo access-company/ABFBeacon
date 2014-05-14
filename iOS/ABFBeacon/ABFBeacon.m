@@ -115,11 +115,15 @@
     if (_peripheralManager.state != CBPeripheralManagerStatePoweredOn) {
         return NO;
     }
-    
-    if ([CLLocationManager authorizationStatus] == kCLAuthorizationStatusDenied ||
-        [CLLocationManager authorizationStatus] == kCLAuthorizationStatusRestricted) {
+    if ([CLLocationManager authorizationStatus] == kCLAuthorizationStatusRestricted) {
         return NO;
     }
+    if ([CLLocationManager authorizationStatus] == kCLAuthorizationStatusDenied) {
+        [self notifyUserDinied];
+        return NO;
+    }
+
+    
     return YES;
 }
 
@@ -223,6 +227,22 @@
     if ([_delegate respondsToSelector:@selector(didUpdateAuthorizationStatus:)]) {
         [_delegate didUpdateAuthorizationStatus:[CLLocationManager authorizationStatus]];
     }
+}
+
+- (void)notifyUserDinied
+{
+    NSUserDefaults *ud = [NSUserDefaults standardUserDefaults];
+    NSString *isNoAlert = [ud stringForKey:ABFBeaconNoDisplayUserDenied];
+    if (isNoAlert) {
+        return;
+    }
+    if (_DisplayedAlertUserDenied) {
+        return;
+    }
+    
+    _alertView = [[UIAlertView alloc] initWithTitle:nil message:ABFBeaconAlertUserDeniedMessage delegate:self cancelButtonTitle:ABFBeaconAlertUserDeniedMessage_NoDisplay otherButtonTitles:ABFBeaconAlertUserDeniedMessage_Confirm, nil];
+    [_alertView show];
+    _DisplayedAlertUserDenied = YES;
 }
 
 #pragma mark - ABFBeacon Region management
@@ -561,6 +581,16 @@
     }
     
     [self stopRanging:beaconRegion];
+}
+
+#pragma UIAlertView
+
+- (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex
+{
+    if (buttonIndex == 0) {
+        NSUserDefaults *ud = [NSUserDefaults standardUserDefaults];
+        [ud setObject:@"No Display User Dinied Messesage" forKey:ABFBeaconNoDisplayUserDenied];
+    }
 }
 
 @end

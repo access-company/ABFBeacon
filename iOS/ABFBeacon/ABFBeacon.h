@@ -22,6 +22,13 @@
 #define ABFBeaconDefaultRegionMaxCount            20
 #define ABFBeaconDefaultMaxFailCount               3
 
+#define ABFBeaconNoDisplayUserDenied              @"ABF_BEACON_NO_DISPLAY_USER_DENIED"
+
+// Messages
+#define ABFBeaconAlertUserDeniedMessage           @"iBeaconキャンペーンをお試し頂くには、「設定 → プライバシー → 位置情報サービス」から本アプリの位置情報サービスを有効にしてください。"
+#define ABFBeaconAlertUserDeniedMessage_Confirm   @"確認"
+#define ABFBeaconAlertUserDeniedMessage_NoDisplay @"次から見ない"
+
 @interface ABFBeacon : NSObject <CBPeripheralManagerDelegate, CLLocationManagerDelegate>
 @property (nonatomic, strong) NSMutableArray *regions;
 @property (nonatomic) BOOL monitoringEnabled;
@@ -34,6 +41,10 @@
 @property (nonatomic) int maxFailCount;
 // Error 5 flag
 @property (nonatomic) int isError5;
+
+// Alert User Denied
+@property (nonatomic) UIAlertView *alertView;
+@property (nonatomic) BOOL DisplayedAlertUserDenied;
 
 + (ABFBeacon *)sharedManager;
 
