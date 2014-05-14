@@ -257,7 +257,7 @@
         return;
     }
     
-    _alertView = [[UIAlertView alloc] initWithTitle:nil message:ABFBeaconAlertUserDeniedMessage delegate:self cancelButtonTitle:ABFBeaconAlertUserDeniedMessage_NoDisplay otherButtonTitles:ABFBeaconAlertUserDeniedMessage_Confirm, nil];
+    _alertView = [[UIAlertView alloc] initWithTitle:nil message:ABFBeaconAlertError5Message delegate:self cancelButtonTitle:ABFBeaconAlertError5Message_NoDisplay otherButtonTitles:ABFBeaconAlertError5Message_Confirm, nil];
     _alertView.tag = ABFBeaconTagError5;
     [_alertView show];
     _DisplayedAlertError5 = YES;
