@@ -109,6 +109,10 @@
 
 - (BOOL)isMonitoringCapable
 {
+    if (![CLBeaconRegion class]) {
+        return NO;
+    }
+
     if (![CLLocationManager isMonitoringAvailableForClass:[CLBeaconRegion class]]) {
         return NO;
     }
