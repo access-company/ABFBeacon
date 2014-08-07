@@ -15,5 +15,6 @@
 @property (nonatomic) BOOL hasEntered;
 @property (nonatomic) int failCount;
 @property (nonatomic) NSArray *beacons;
+@property (nonatomic) BOOL isError5;
 - (void)initStatus;
 @end

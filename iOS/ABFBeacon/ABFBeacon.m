@@ -518,6 +518,10 @@
         
         [self disableMonitoringForRegion:beaconRegion];
         
+        if (error.code == kCLErrorRegionMonitoringFailure) {
+            beaconRegion.isError5 = YES;
+        }
+        
         if (beaconRegion.failCount < _maxFailCount) {
             beaconRegion.failCount++;
             [NSTimer scheduledTimerWithTimeInterval:1.f
@@ -526,10 +530,10 @@
                                            userInfo:beaconRegion
                                             repeats:NO];
         }
-    }
-    
-    if (error.code == kCLErrorRegionMonitoringFailure) {
-        self.isError5 = YES;
+    } else if ([region isKindOfClass:[CLCircularRegion class]]) {
+        if (error.code == kCLErrorRegionMonitoringFailure) {
+            NSLog(@"ABF CLCircularRegion error5: %@", region.identifier);
+        }
     }
 }
 
