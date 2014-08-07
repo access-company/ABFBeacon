@@ -452,6 +452,7 @@
         ABFBeaconRegion *esBeacon = [self lookupRegion:(CLBeaconRegion *)region];
         if (esBeacon) {
             esBeacon.failCount = 0;
+            esBeacon.isError5 = NO;
         }
     }
     [self.locationManager requestStateForRegion:region];
