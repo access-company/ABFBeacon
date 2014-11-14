@@ -421,8 +421,10 @@
             return @"Restricted";
         case kCLAuthorizationStatusDenied:
             return @"Denied";
-        case kCLAuthorizationStatusAuthorized:
+        case kCLAuthorizationStatusAuthorizedAlways: // is equal kCLAuthorizationStatusAuthorized in iOS7.
             return @"Authorized";
+        case kCLAuthorizationStatusAuthorizedWhenInUse:
+            return @"Authorized when in use";
     }
     return @"";
 }
@@ -455,6 +457,13 @@
             esBeacon.isError5 = NO;
         }
     }
+    
+    // iOS8 required call requestAlwaysAuthorization.
+    float iOSVersion = [[[UIDevice currentDevice] systemVersion] floatValue];
+    if (iOSVersion >= 8.0) {
+        [self.locationManager requestAlwaysAuthorization];
+    }
+    
     [self.locationManager requestStateForRegion:region];
 }
 
