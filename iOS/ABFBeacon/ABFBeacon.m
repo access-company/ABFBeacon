@@ -33,9 +33,6 @@
 {
     self = [super init];
     if (self) {
-        // Allocate peripheral manager.
-        _peripheralManager = [[CBPeripheralManager alloc] initWithDelegate:self queue:nil];
-        
         // Allocate location manager.
         _locationManager = [[CLLocationManager alloc] init];
         _locationManager.delegate = self;
@@ -60,6 +57,9 @@
         
         // Monitoring status.
         _monitoringEnabled = NO;
+		
+        // Show dialog if Bluethooth setting is OFF.
+        _showBluetoothPowerAlert = YES;
 
         /* This may cause a issue of kCLErrorDomain error 5, commenting out for now.
         [[NSNotificationCenter defaultCenter] addObserver:self
@@ -97,6 +97,13 @@
 
 - (void)startMonitoring
 {
+    // Allocate peripheral manager.
+    if (self.showBluetoothPowerAlert) {
+        _peripheralManager = [[CBPeripheralManager alloc] initWithDelegate:self queue:nil options:@{CBPeripheralManagerOptionShowPowerAlertKey:@YES}];
+    } else {
+        _peripheralManager = [[CBPeripheralManager alloc] initWithDelegate:self queue:nil options:@{CBPeripheralManagerOptionShowPowerAlertKey:@NO}];
+    }
+	
     _monitoringEnabled = YES;
     [self enableMonitoring];
 }
