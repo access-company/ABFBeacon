@@ -33,6 +33,8 @@
 @property (nonatomic) int regionMaxCount;
 @property (nonatomic) int maxFailCount;
 
+@property (nonatomic) BOOL showBluetoothPowerAlert;
+
 + (ABFBeacon *)sharedManager;
 
 - (void)startMonitoring;
