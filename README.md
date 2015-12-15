@@ -1,10 +1,27 @@
-ABFBeacon
+# ABFBeacon
 =========
 
 ACCESS Beacon Framework Library is wrapper for iBeacon API.
 
-How to use it
+# How to use it
 =============
+
+#### Podfile
+
+To integrate AFNetworking into your Xcode project using CocoaPods, specify it in your `Podfile`:
+
+```ruby
+platform :ios, '7.1'
+
+pod 'ABFBeacon', :git => 'https://github.com/access-company/ABFBeacon', :tag => '1.0.0'
+
+Then, run the following command:
+
+```bash
+$ pod install
+``````
+
+#### Installation to your project
 
 Add iOS/ABFBeacon files to your project
 
@@ -51,6 +68,6 @@ Here are list of delegates defined in ABFBeaconDelegate.
 @end
 ```
 
-Licensing
+# Licensing
 =========
 ABFBeacon is distributed under MIT License.
