@@ -6,7 +6,7 @@ ACCESS Beacon Framework Library is wrapper for iBeacon API.
 
 #### Podfile
 
-To integrate AFNetworking into your Xcode project using CocoaPods, specify it in your `Podfile`:
+To integrate ABFBeacon into your Xcode project using CocoaPods, specify it in your `Podfile`:
 
 ```ruby
 platform :ios, '7.1'
