@@ -348,13 +348,13 @@
     if (! beaconRegion)
         return;
     
-    // Already in the region.
-    if (beaconRegion.hasEntered)
-        return;
-    
     // When ranging is enabled, start ranging.
     if (beaconRegion.rangingEnabled)
         [self startRanging:beaconRegion];
+    
+    // Already in the region.
+    if (beaconRegion.hasEntered)
+        return;
     
     // Mark as entered.
     beaconRegion.hasEntered = YES;
@@ -373,11 +373,11 @@
     if (! beaconRegion)
         return;
     
-    if (! beaconRegion.hasEntered)
-        return;
-    
     if (beaconRegion.rangingEnabled)
         [self stopRanging:beaconRegion];
+    
+    if (! beaconRegion.hasEntered)
+        return;
     
     beaconRegion.hasEntered = NO;
     if ([_delegate respondsToSelector:@selector(didUpdateRegionEnterOrExit:)]) {
