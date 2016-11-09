@@ -60,7 +60,11 @@ Here are list of delegates defined in ABFBeaconDelegate.
 ```
 @protocol ABFBeaconDelegate <NSObject>
 @optional
+#if __IPHONE_OS_VERSION_MAX_ALLOWED >= 100000
+- (void)didUpdatePeripheralState:(CBManagerState)state;
+#else
 - (void)didUpdatePeripheralState:(CBPeripheralManagerState)state;
+#endif
 - (void)didUpdateAuthorizationStatus:(CLAuthorizationStatus)status;
 - (void)didRangeBeacons:(ABFBeaconRegion *)region;
 - (void)didUpdateRegionEnterOrExit:(ABFBeaconRegion *)region;
