@@ -123,7 +123,11 @@
     if (![CLLocationManager isMonitoringAvailableForClass:[CLBeaconRegion class]]) {
         return NO;
     }
+#if __IPHONE_OS_VERSION_MAX_ALLOWED >= 100000
+    if (_peripheralManager.state != CBManagerStatePoweredOn) {
+#else
     if (_peripheralManager.state != CBPeripheralManagerStatePoweredOn) {
+#endif
         return NO;
     }
     
@@ -387,6 +391,25 @@
 
 #pragma mark - CBPeripheralManagerDelegate
 
+#if __IPHONE_OS_VERSION_MAX_ALLOWED >= 100000
+- (NSString *)peripheralStateString:(CBManagerState)state
+{
+    switch (state) {
+        case CBManagerStatePoweredOn:
+            return @"On";
+        case CBManagerStatePoweredOff:
+            return @"Off";
+        case CBManagerStateResetting:
+            return @"Resetting";
+        case CBManagerStateUnauthorized:
+            return @"Unauthorized";
+        case CBManagerStateUnknown:
+            return @"Unknown";
+        case CBManagerStateUnsupported:
+            return @"Unsupported";
+    }
+}
+#else
 - (NSString *)peripheralStateString:(CBPeripheralManagerState)state
 {
     switch (state) {
@@ -404,6 +427,7 @@
             return @"Unsupported";
     }
 }
+#endif
 
 - (void)peripheralManagerDidUpdateState:(CBPeripheralManager *)peripheral
 {
