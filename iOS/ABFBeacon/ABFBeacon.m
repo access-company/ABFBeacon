@@ -11,6 +11,7 @@
 @interface ABFBeacon ()
 @property (nonatomic, strong) CBPeripheralManager *peripheralManager;
 @property (nonatomic, strong) CLLocationManager *locationManager;
+@property (nonatomic) CLAuthorizationStatus authStatus;
 @end
 
 @implementation ABFBeacon
@@ -67,6 +68,8 @@
                                                      name:UIApplicationDidBecomeActiveNotification
                                                    object:nil];
         */
+        
+        _authStatus = [CLLocationManager authorizationStatus];
     }
     return self;
 }
@@ -140,11 +143,21 @@
 
 - (void)updateMonitoring
 {
+    CLAuthorizationStatus newStatus = [CLLocationManager authorizationStatus];
+    
     if ([self isMonitoringCapable]) {
+        if ((self.authStatus == kCLAuthorizationStatusAuthorizedAlways
+             && newStatus == kCLAuthorizationStatusAuthorizedWhenInUse)
+            || (self.authStatus = kCLAuthorizationStatusAuthorizedWhenInUse
+                && newStatus == kCLAuthorizationStatusAuthorizedAlways)) {
+            [self disableMonitoring];
+        }
         [self enableMonitoring];
     } else {
         [self disableMonitoring];
     }
+    
+    self.authStatus = newStatus;
 }
 
 - (void)enableMonitoring
@@ -178,7 +191,14 @@
         return;
     }
     
-    [_locationManager startMonitoringForRegion:region];
+    CLAuthorizationStatus status = [CLLocationManager authorizationStatus];
+    if (status == kCLAuthorizationStatusAuthorizedWhenInUse) {
+        if (region.rangingEnabled) {
+            [_locationManager startRangingBeaconsInRegion:region];
+        }
+    } else {
+        [_locationManager startMonitoringForRegion:region];
+    }
     region.isMonitoring = YES;
 }
 
@@ -452,8 +472,10 @@
             return @"Restricted";
         case kCLAuthorizationStatusDenied:
             return @"Denied";
-        case kCLAuthorizationStatusAuthorized:
-            return @"Authorized";
+        case kCLAuthorizationStatusAuthorizedAlways:
+            return @"AuthorizedAlways";
+        case kCLAuthorizationStatusAuthorizedWhenInUse:
+            return @"AuthorizedWhenInUse";
     }
     return @"";
 }
