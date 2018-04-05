@@ -194,7 +194,7 @@
     CLAuthorizationStatus status = [CLLocationManager authorizationStatus];
     if (status == kCLAuthorizationStatusAuthorizedWhenInUse) {
         if (region.rangingEnabled) {
-            [_locationManager startRangingBeaconsInRegion:region];
+            [self startRanging:region];
         }
     } else {
         [_locationManager startMonitoringForRegion:region];
