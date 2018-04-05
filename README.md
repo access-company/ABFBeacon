@@ -11,7 +11,7 @@ To integrate ABFBeacon into your Xcode project using CocoaPods, specify it in yo
 ```ruby
 platform :ios, '7.1'
 
-pod 'ABFBeacon', :git => 'https://github.com/access-company/ABFBeacon', :tag => '1.0.0'
+pod 'ABFBeacon', :git => 'https://github.com/access-company/ABFBeacon', :tag => '1.4.0'
 ```
 
 Then, run the following command:
