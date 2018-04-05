@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
   s.name             = "ABFBeacon"
-  s.version          = "1.0.0"
+  s.version          = "1.4.0"
   s.summary          = "ACCESS Beacon Framework Library"
   s.homepage         = "https://github.com/access-company/ABFBeacon"
   s.license          = { :type => 'MIT', :file => 'iOS/LICENSE.txt' }
